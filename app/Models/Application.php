@@ -2795,7 +2795,7 @@ class Application extends BaseModel
             ]);
             instant_remote_process($commands, $this->destination->server, false);
         }
-        if ($composeFileContent) {
+        if (trim((string) $composeFileContent) !== '') {
             try {
                 validateDockerComposeForInjection($composeFileContent);
             } catch (\Exception $e) {
@@ -2823,7 +2823,7 @@ class Application extends BaseModel
             $this->base_directory = $initialBaseDirectory;
             $this->save();
 
-            throw new RuntimeException("Docker Compose file not found at: $workdir$composeFile (branch: {$this->git_branch})<br><br>Check if you used the right extension (.yaml or .yml) in the compose file name.");
+            throw new RuntimeException("Docker Compose file at $workdir$composeFile (branch: {$this->git_branch}) is empty. Commit the content of the Compose file and load it again.");
         }
     }
 

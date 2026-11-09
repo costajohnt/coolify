@@ -78,6 +78,22 @@ it('shows and logs why the Git source could not be read, without credentials', f
         && ! str_contains(json_encode($context), 'ghs_SECRET123'));
 });
 
+it('tells the user that an empty Compose file is not loaded', function (string $content) {
+    $this->application->update(['docker_compose_raw' => "services:\n  web:\n    image: nginx\n"]);
+    Process::fake(fn () => Process::result(output: $content));
+
+    expect(fn () => $this->application->loadComposeFile())
+        ->toThrow(function (RuntimeException $exception) {
+            expect($exception->getMessage())
+                ->toContain('Docker Compose file at /docker-compose.yml (branch: main) is empty')
+                ->not->toContain('not found');
+        });
+    expect($this->application->fresh()->docker_compose_raw)->toBe("services:\n  web:\n    image: nginx\n");
+})->with([
+    'empty file' => [''],
+    'whitespace only' => ["\n  \n\t\n"],
+]);
+
 it('tells the user that a symlinked Compose file is not loaded', function () {
     $this->application->update(['docker_compose_raw' => "services:\n  web:\n    image: nginx\n"]);
     fakeComposeLoadServer('git ls-tree', 'The Docker Compose file is a symbolic link.');
